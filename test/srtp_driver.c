@@ -65,7 +65,7 @@
 srtp_err_status_t
 srtp_validate(void);
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
 srtp_err_status_t
 srtp_validate_gcm(void);
 #endif
@@ -73,7 +73,7 @@ srtp_validate_gcm(void);
 srtp_err_status_t
 srtp_validate_encrypted_extensions_headers(void);
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
 srtp_err_status_t
 srtp_validate_encrypted_extensions_headers_gcm(void);
 #endif
@@ -90,7 +90,7 @@ srtp_dealloc_big_policy(srtp_policy_t *list);
 srtp_err_status_t
 srtp_test_empty_payload(void);
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
 srtp_err_status_t
 srtp_test_empty_payload_gcm(void);
 #endif
@@ -434,7 +434,7 @@ main (int argc, char *argv[])
             exit(1);
         }
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
         printf("testing srtp_protect and srtp_unprotect against "
                "reference packet using GCM\n");
         if (srtp_validate_gcm() == srtp_err_status_ok) {
@@ -454,7 +454,7 @@ main (int argc, char *argv[])
             exit(1);
         }
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
         printf("testing srtp_protect and srtp_unprotect against "
                "reference packet with encrypted extension headers (GCM)\n");
         if (srtp_validate_encrypted_extensions_headers_gcm() == srtp_err_status_ok) {
@@ -489,7 +489,7 @@ main (int argc, char *argv[])
             printf("failed\n");
             exit(1);
         }
-#ifdef OPENSSL
+#ifdef MBEDTLS
         printf("testing srtp_protect and srtp_unprotect against "
                "packet with empty payload (GCM)\n");
         if (srtp_test_empty_payload_gcm() == srtp_err_status_ok) {
@@ -1800,7 +1800,7 @@ srtp_validate ()
     return srtp_err_status_ok;
 }
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
 /*
  * srtp_validate_gcm() verifies the correctness of libsrtp by comparing
  * an computed packet against the known ciphertext for the plaintext.
@@ -2088,7 +2088,7 @@ srtp_validate_encrypted_extensions_headers() {
 }
 
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
 
 /*
  * Headers of test vectors taken from RFC 6904, Appendix A
@@ -2449,7 +2449,7 @@ srtp_test_empty_payload()
     return srtp_err_status_ok;
 }
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
 srtp_err_status_t
 srtp_test_empty_payload_gcm()
 {
@@ -2525,7 +2525,7 @@ srtp_test_empty_payload_gcm()
 
     return srtp_err_status_ok;
 }
-#endif  // OPENSSL
+#endif  // MBEDTLS
 
 srtp_err_status_t
 srtp_test_remove_stream ()
@@ -2800,10 +2800,10 @@ srtp_test_setup_protect_trailer_streams(srtp_t *srtp_send, srtp_t *srtp_send_mki
   srtp_err_status_t status;
   srtp_policy_t policy;
   srtp_policy_t policy_mki;
-#ifdef OPENSSL
+#ifdef MBEDTLS
   srtp_policy_t policy_aes_gcm;
   srtp_policy_t policy_aes_gcm_mki;
-#endif // OPENSSL
+#endif // MBEDTLS
 
   memset(&policy, 0, sizeof(policy));
   srtp_crypto_policy_set_rtp_default(&policy.rtp);
@@ -2827,7 +2827,7 @@ srtp_test_setup_protect_trailer_streams(srtp_t *srtp_send, srtp_t *srtp_send_mki
   policy_mki.keys = test_keys;
   policy_mki.num_master_keys = 2;
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
   memset(&policy_aes_gcm, 0, sizeof(policy_aes_gcm));
   srtp_crypto_policy_set_aes_gcm_128_16_auth(&policy_aes_gcm.rtp);
   srtp_crypto_policy_set_aes_gcm_128_16_auth(&policy_aes_gcm.rtcp);
@@ -2861,7 +2861,7 @@ srtp_test_setup_protect_trailer_streams(srtp_t *srtp_send, srtp_t *srtp_send_mki
   if (status)
     return status;
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
   status = srtp_create(srtp_send_aes_gcm, &policy_aes_gcm);
   if (status)
     return status;
@@ -2869,7 +2869,7 @@ srtp_test_setup_protect_trailer_streams(srtp_t *srtp_send, srtp_t *srtp_send_mki
   status = srtp_create(srtp_send_aes_gcm_mki, &policy_aes_gcm_mki);
   if (status)
     return status;
-#endif //OPENSSL
+#endif //MBEDTLS
 
   return srtp_err_status_ok;
 }
@@ -2903,7 +2903,7 @@ srtp_test_protect_trailer_length() {
   if (length != 14)
     return srtp_err_status_fail;
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
   status = srtp_get_protect_trailer_length(srtp_send_aes_gcm, 0, 0, &length);
   if (status)
     return status;
@@ -2921,7 +2921,7 @@ srtp_test_protect_trailer_length() {
   if (length != 20)
     return srtp_err_status_fail;
 
-#endif //OPENSSL
+#endif //MBEDTLS
   return srtp_err_status_ok;
 }
 
@@ -2954,7 +2954,7 @@ srtp_test_protect_rtcp_trailer_length() {
   if (length != 18)
     return srtp_err_status_fail;
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
   status = srtp_get_protect_rtcp_trailer_length(srtp_send_aes_gcm, 0, 0, &length);
   if (status)
     return status;
@@ -2972,7 +2972,7 @@ srtp_test_protect_rtcp_trailer_length() {
   if (length != 24)
     return srtp_err_status_fail;
 
-#endif //OPENSSL
+#endif //MBEDTLS
   return srtp_err_status_ok;
 }
 
@@ -3487,7 +3487,7 @@ const srtp_policy_t hmac_only_policy = {
     NULL
 };
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
 const srtp_policy_t aes128_gcm_8_policy = {
     { ssrc_any_outbound, 0 },           /* SSRC                           */
     {                                   /* SRTP policy                    */
@@ -3758,7 +3758,7 @@ policy_array[] = {
     &hmac_only_policy,
     &aes_only_policy,
     &default_policy,
-#ifdef OPENSSL
+#ifdef MBEDTLS
     &aes128_gcm_8_policy,
     &aes128_gcm_8_cauth_policy,
     &aes256_gcm_8_policy,

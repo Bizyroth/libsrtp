@@ -52,9 +52,9 @@
 #include <string.h>          /* for memset() */
 #include "getopt_s.h"
 #include "cipher.h"
-#ifdef OPENSSL
-#include "aes_icm_ossl.h"
-#include "aes_gcm_ossl.h"
+#ifdef MBEDTLS
+#include "aes_icm_mbedtls.h"
+#include "aes_gcm_mbedtls.h"
 #else
 #include "aes_icm.h"
 #endif
@@ -123,10 +123,10 @@ check_status(srtp_err_status_t s) {
 extern srtp_cipher_type_t srtp_null_cipher;
 extern srtp_cipher_type_t srtp_aes_icm_128;
 extern srtp_cipher_type_t srtp_aes_icm_256;
-#ifdef OPENSSL
+#ifdef MBEDTLS
 extern srtp_cipher_type_t srtp_aes_icm_192;
-extern srtp_cipher_type_t srtp_aes_gcm_128_openssl;
-extern srtp_cipher_type_t srtp_aes_gcm_256_openssl;
+extern srtp_cipher_type_t srtp_aes_gcm_128_mbedtls;
+extern srtp_cipher_type_t srtp_aes_gcm_256_mbedtls;
 #endif
 
 int
@@ -187,16 +187,16 @@ main(int argc, char *argv[]) {
     for (num_cipher=1; num_cipher < max_num_cipher; num_cipher *=8)
       cipher_driver_test_array_throughput(&srtp_aes_icm_256, SRTP_AES_ICM_256_KEY_LEN_WSALT, num_cipher);
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
     for (num_cipher=1; num_cipher < max_num_cipher; num_cipher *=8)
       cipher_driver_test_array_throughput(&srtp_aes_icm_192, SRTP_AES_ICM_192_KEY_LEN_WSALT, num_cipher);
 
     for (num_cipher=1; num_cipher < max_num_cipher; num_cipher *=8) {
-      cipher_driver_test_array_throughput(&srtp_aes_gcm_128_openssl, SRTP_AES_GCM_128_KEY_LEN_WSALT, num_cipher);
+      cipher_driver_test_array_throughput(&srtp_aes_gcm_128_mbedtls, SRTP_AES_GCM_128_KEY_LEN_WSALT, num_cipher);
     }
 
     for (num_cipher=1; num_cipher < max_num_cipher; num_cipher *=8) {
-      cipher_driver_test_array_throughput(&srtp_aes_gcm_256_openssl, SRTP_AES_GCM_256_KEY_LEN_WSALT, num_cipher);
+      cipher_driver_test_array_throughput(&srtp_aes_gcm_256_mbedtls, SRTP_AES_GCM_256_KEY_LEN_WSALT, num_cipher);
     }
 #endif
   }
@@ -205,15 +205,15 @@ main(int argc, char *argv[]) {
     cipher_driver_self_test(&srtp_null_cipher);
     cipher_driver_self_test(&srtp_aes_icm_128);
     cipher_driver_self_test(&srtp_aes_icm_256);
-#ifdef OPENSSL
+#ifdef MBEDTLS
     cipher_driver_self_test(&srtp_aes_icm_192);
-    cipher_driver_self_test(&srtp_aes_gcm_128_openssl);
-    cipher_driver_self_test(&srtp_aes_gcm_256_openssl);
+    cipher_driver_self_test(&srtp_aes_gcm_128_mbedtls);
+    cipher_driver_self_test(&srtp_aes_gcm_256_mbedtls);
 #endif
   }
 
   /* do timing and/or buffer_test on srtp_null_cipher */
-  status = srtp_cipher_type_alloc(&srtp_null_cipher, &c, 0, 0); 
+  status = srtp_cipher_type_alloc(&srtp_null_cipher, &c, 0, 0);
   check_status(status);
 
   status = srtp_cipher_init(c, NULL);
@@ -227,7 +227,7 @@ main(int argc, char *argv[]) {
   }
   status = srtp_cipher_dealloc(c);
   check_status(status);
-  
+
 
   /* run the throughput test on the aes_icm cipher (128-bit key) */
     status = srtp_cipher_type_alloc(&srtp_aes_icm_128, &c, SRTP_AES_ICM_128_KEY_LEN_WSALT, 0);
@@ -271,9 +271,9 @@ main(int argc, char *argv[]) {
     status = srtp_cipher_dealloc(c);
     check_status(status);
 
-#ifdef OPENSSL
-    /* run the throughput test on the aes_gcm_128_openssl cipher */
-    status = srtp_cipher_type_alloc(&srtp_aes_gcm_128_openssl, &c, SRTP_AES_GCM_128_KEY_LEN_WSALT, 8);
+#ifdef MBEDTLS
+    /* run the throughput test on the aes_gcm_128_MBEDTLS cipher */
+    status = srtp_cipher_type_alloc(&srtp_aes_gcm_128_mbedtls, &c, SRTP_AES_GCM_128_KEY_LEN_WSALT, 8);
     if (status) {
         fprintf(stderr, "error: can't allocate GCM 128 cipher\n");
         exit(status);
@@ -291,8 +291,8 @@ main(int argc, char *argv[]) {
     status = srtp_cipher_dealloc(c);
     check_status(status);
 
-    /* run the throughput test on the aes_gcm_256_openssl cipher */
-    status = srtp_cipher_type_alloc(&srtp_aes_gcm_256_openssl, &c, SRTP_AES_GCM_256_KEY_LEN_WSALT, 16);
+    /* run the throughput test on the aes_gcm_256_MBEDTLS cipher */
+    status = srtp_cipher_type_alloc(&srtp_aes_gcm_256_mbedtls, &c, SRTP_AES_GCM_256_KEY_LEN_WSALT, 16);
     if (status) {
         fprintf(stderr, "error: can't allocate GCM 256 cipher\n");
         exit(status);
@@ -356,12 +356,12 @@ cipher_driver_test_buffering(srtp_cipher_t *c) {
   int i, j, num_trials = 1000;
   unsigned len, buflen = INITIAL_BUFLEN;
   uint8_t buffer0[INITIAL_BUFLEN], buffer1[INITIAL_BUFLEN], *current, *end;
-  uint8_t idx[16] = { 
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+  uint8_t idx[16] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34
   };
   srtp_err_status_t status;
-  
+
   printf("testing output buffering for cipher %s...",
 	 c->type->description);
 
@@ -371,7 +371,7 @@ cipher_driver_test_buffering(srtp_cipher_t *c) {
     for (j=0; j < (int) buflen; j++) {
       buffer0[j] = buffer1[j] = 0;
     }
-    
+
     /* initialize cipher  */
     status = srtp_cipher_set_iv(c, (uint8_t*)idx, srtp_direction_encrypt);
     if (status)
@@ -379,22 +379,20 @@ cipher_driver_test_buffering(srtp_cipher_t *c) {
 
     /* generate 'reference' value by encrypting all at once */
     status = srtp_cipher_encrypt(c, buffer0, &buflen);
+
     if (status)
       return status;
-
     /* re-initialize cipher */
     status = srtp_cipher_set_iv(c, (uint8_t*)idx, srtp_direction_encrypt);
     if (status)
       return status;
-    
+
     /* now loop over short lengths until buffer1 is encrypted */
     current = buffer1;
     end = buffer1 + buflen;
     while (current < end) {
-
       /* choose a short length */
       len = rand() & 0x01f;
-
       /* make sure that len doesn't cause us to overreach the buffer */
       if (current + len > end)
 	len = end - current;
@@ -402,7 +400,7 @@ cipher_driver_test_buffering(srtp_cipher_t *c) {
       status = srtp_cipher_encrypt(c, current, &len);
       if (status) 
 	return status;
-      
+
       /* advance pointer into buffer1 to reflect encryption */
       current += len;
       
@@ -414,11 +412,12 @@ cipher_driver_test_buffering(srtp_cipher_t *c) {
     /* compare buffers */
     for (j=0; j < (int) buflen; j++) {
       if (buffer0[j] != buffer1[j]) {
+
 #if PRINT_DEBUG
 	printf("test case %d failed at byte %d\n", i, j);
-	printf("computed: %s\n", octet_string_hex_string(buffer1, buflen));
-	printf("expected: %s\n", octet_string_hex_string(buffer0, buflen));
-#endif 
+	printf("computed: %s\n", srtp_octet_string_hex_string(buffer1, buflen));
+	printf("expected: %s\n", srtp_octet_string_hex_string(buffer0, buflen));
+#endif
 	return srtp_err_status_algo_fail;
       }
     }

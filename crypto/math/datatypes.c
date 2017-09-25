@@ -47,9 +47,6 @@
     #include <config.h>
 #endif
 
-#ifdef OPENSSL
-#include <openssl/crypto.h>
-#endif
 
 #include "datatypes.h"
 
@@ -468,11 +465,15 @@ srtp_cleanse(void *s, size_t len)
   while(len--) *p++ = 0;
 }
 
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 void
 octet_string_set_to_zero(void *s, size_t len)
 {
-#ifdef OPENSSL
-  OPENSSL_cleanse(s, len);
+#ifdef MBEDTLS
+	mbedtls_zeroize(s,len);
 #else
   srtp_cleanse(s, len);
 #endif

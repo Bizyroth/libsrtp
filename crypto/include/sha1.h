@@ -52,8 +52,8 @@
 #endif
 
 #include "err.h"
-#ifdef OPENSSL
-#include <openssl/evp.h>
+#ifdef MBEDTLS
+#include "../../../mbedtls/include/mbedtls/sha1.h"
 #include <stdint.h>
 #else
 #include "datatypes.h"
@@ -63,7 +63,7 @@
 extern "C" {
 #endif
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
 
 /*
  * srtp_sha1_init(&ctx) initializes the SHA1 context ctx
@@ -79,54 +79,30 @@ extern "C" {
  *
  */
 
-/* OpenSSL 1.1.0 made EVP_MD_CTX an opaque structure, which must be allocated
-   using EVP_MD_CTX_new. But this function doesn't exist in OpenSSL 1.0.x. */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+/* MBEDTLS 1.1.0 made EVP_MD_CTX an opaque structure, which must be allocated
+   using EVP_MD_CTX_new. But this function doesn't exist in MBEDTLS 1.0.x. */
+//#if MBEDTLS_VERSION_NUMBER < 0x10100000L
 
-typedef EVP_MD_CTX srtp_sha1_ctx_t;
+typedef mbedtls_sha1_context srtp_sha1_ctx_t;
 
 static inline void srtp_sha1_init (srtp_sha1_ctx_t *ctx)
 {
-    EVP_MD_CTX_init(ctx);
-    EVP_DigestInit(ctx, EVP_sha1());
+	mbedtls_sha1_init(ctx);
+	mbedtls_sha1_starts(ctx);
 }
 
 static inline void srtp_sha1_update (srtp_sha1_ctx_t *ctx, const uint8_t *M, int octets_in_msg)
 {
-    EVP_DigestUpdate(ctx, M, octets_in_msg);
+	mbedtls_sha1_update(ctx, M, (size_t) octets_in_msg);
 }
 
 static inline void srtp_sha1_final (srtp_sha1_ctx_t *ctx, uint32_t *output)
 {
-    unsigned int len = 0;
-
-    EVP_DigestFinal(ctx, (unsigned char*)output, &len);
-    EVP_MD_CTX_cleanup(ctx);
+    mbedtls_sha1_finish(ctx, (unsigned char *)output);
+    mbedtls_sha1_free(ctx);
 }
 
-#else
 
-typedef EVP_MD_CTX* srtp_sha1_ctx_t;
-
-static inline void srtp_sha1_init (srtp_sha1_ctx_t *ctx)
-{
-    *ctx = EVP_MD_CTX_new();
-    EVP_DigestInit(*ctx, EVP_sha1());
-}
-
-static inline void srtp_sha1_update (srtp_sha1_ctx_t *ctx, const uint8_t *M, int octets_in_msg)
-{
-    EVP_DigestUpdate(*ctx, M, octets_in_msg);
-}
-
-static inline void srtp_sha1_final (srtp_sha1_ctx_t *ctx, uint32_t *output)
-{
-    unsigned int len = 0;
-
-    EVP_DigestFinal(*ctx, (unsigned char*)output, &len);
-    EVP_MD_CTX_free(*ctx);
-}
-#endif
 
 #else
 
@@ -170,7 +146,7 @@ void srtp_sha1_final(srtp_sha1_ctx_t * ctx, uint32_t output[5]);
  */
 void srtp_sha1_core(const uint32_t M[16], uint32_t hash_value[5]);
 
-#endif /* else OPENSSL */
+#endif /* else MBEDTLS */
 
 #ifdef __cplusplus
 }

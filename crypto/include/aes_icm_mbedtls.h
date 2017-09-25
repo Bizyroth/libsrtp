@@ -48,14 +48,14 @@
 
 #include "cipher.h"
 #include "datatypes.h"
-#include <openssl/evp.h>
-#include <openssl/aes.h>
+#include <../../../mbedtls/include/mbedtls/cipher.h>
+
 
 typedef struct {
     v128_t counter;                /* holds the counter value          */
     v128_t offset;                 /* initial offset value             */
     int key_size;
-    EVP_CIPHER_CTX* ctx;
+    mbedtls_cipher_context_t ctx;
 } srtp_aes_icm_ctx_t;
 
 #endif /* AES_ICM_H */

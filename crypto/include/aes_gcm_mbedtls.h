@@ -49,13 +49,25 @@
 #include "cipher.h"
 #include "srtp.h"
 #include "datatypes.h"
-#include <openssl/evp.h>
-#include <openssl/aes.h>
+#include <../../../mbedtls/include/mbedtls/cipher.h>
+#include <../../../mbedtls/include/mbedtls/gcm.h>
 
 typedef struct {
     int key_size;
     int tag_len;
-    EVP_CIPHER_CTX* ctx;
+    /*
+     * AAD are added in two times during test
+     * mbedtls_cipher_update_aad MUST be call just once so we bufferize the aad
+     */
+    int aad_len;
+    unsigned char aad[1024];
+
+    /*
+     * ctxe is the context for encryption
+     * ctxd is the context for decryption
+     */
+    mbedtls_cipher_context_t ctxe;
+    mbedtls_cipher_context_t ctxd;
     srtp_cipher_direction_t dir;
 } srtp_aes_gcm_ctx_t;
 

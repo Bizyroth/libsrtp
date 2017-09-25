@@ -626,7 +626,7 @@ LIBOBJS
 HAVE_PCAP
 HMAC_OBJS
 AES_ICM_OBJS
-USE_OPENSSL
+USE_MBEDTLS
 crypto_LIBS
 crypto_CFLAGS
 PKG_CONFIG_LIBDIR
@@ -701,9 +701,9 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_debug_logging
-enable_openssl
-with_openssl_dir
-enable_openssl_kdf
+enable_mbedtls
+with_mbedtls_dir
+enable_mbedtls_kdf
 enable_log_stdout
 with_log_file
 '
@@ -1336,14 +1336,14 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-debug-logging  Enable debug logging in all modules
-  --enable-openssl        compile in OpenSSL crypto engine
-  --enable-openssl-kdf    Use OpenSSL KDF algorithm
+  --enable-mbedtls        compile in Mbedtls crypto engine
+  --enable-mbedtls-kdf    Use Mbedtls KDF algorithm
   --enable-log-stdout     redirecting logging to stdout
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-openssl-dir      Location of OpenSSL installation
+  --with-mbedtls-dir      Location of Mbedtls installation
   --with-log-file         Use file for logging
 
 Some influential environment variables:
@@ -5120,46 +5120,46 @@ if test "x$PKG_CONFIG" != "x"; then :
   PKG_CONFIG="$PKG_CONFIG --static"
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to leverage OpenSSL crypto" >&5
-$as_echo_n "checking whether to leverage OpenSSL crypto... " >&6; }
-# Check whether --enable-openssl was given.
-if test "${enable_openssl+set}" = set; then :
-  enableval=$enable_openssl;
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to leverage Mbedtls crypto" >&5
+$as_echo_n "checking whether to leverage Mbedtls crypto... " >&6; }
+# Check whether --enable-mbedtls was given.
+if test "${enable_mbedtls+set}" = set; then :
+  enableval=$enable_mbedtls;
 else
-  enable_openssl=no
+  enable_mbedtls=no
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_openssl" >&5
-$as_echo "$enable_openssl" >&6; }
-if test "$enable_openssl" = "yes"; then
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for user specified OpenSSL directory" >&5
-$as_echo_n "checking for user specified OpenSSL directory... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_mbedtls" >&5
+$as_echo "$enable_mbedtls" >&6; }
+if test "$enable_mbedtls" = "yes"; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for user specified Mbedtls directory" >&5
+$as_echo_n "checking for user specified Mbedtls directory... " >&6; }
 
-# Check whether --with-openssl-dir was given.
-if test "${with_openssl_dir+set}" = set; then :
-  withval=$with_openssl_dir; if test "x$PKG_CONFIG" != "x" && test -f $with_openssl_dir/lib/pkgconfig/libcrypto.pc; then
+# Check whether --with-mbedtls-dir was given.
+if test "${with_mbedtls_dir+set}" = set; then :
+  withval=$with_mbedtls_dir; if test "x$PKG_CONFIG" != "x" && test -f $with_mbedtls_dir/lib/pkgconfig/libcrypto.pc; then
          if test "x$PKG_CONFIG_PATH" = "x"; then
-           export PKG_CONFIG_PATH="$with_openssl_dir/lib/pkgconfig"
+           export PKG_CONFIG_PATH="$with_mbedtls_dir/lib/pkgconfig"
          else
-           export PKG_CONFIG_PATH="$with_openssl_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
+           export PKG_CONFIG_PATH="$with_mbedtls_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
          fi
-         { $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_openssl_dir" >&5
-$as_echo "$with_openssl_dir" >&6; }
-       elif test -d $with_openssl_dir/lib; then
-         CFLAGS="$CFLAGS -I$with_openssl_dir/include"
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_mbedtls_dir" >&5
+$as_echo "$with_mbedtls_dir" >&6; }
+       elif test -d $with_mbedtls_dir/lib; then
+         CFLAGS="$CFLAGS -I$with_mbedtls_dir/include"
          if test "x$LDFLAGS" = "x"; then
-           LDFLAGS="-L$with_openssl_dir/lib"
+           LDFLAGS="-L$with_mbedtls_dir/lib"
          else
-           LDFLAGS="$LDFLAGS -L$with_openssl_dir/lib"
+           LDFLAGS="$LDFLAGS -L$with_mbedtls_dir/lib"
          fi
-         { $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_openssl_dir" >&5
-$as_echo "$with_openssl_dir" >&6; }
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_mbedtls_dir" >&5
+$as_echo "$with_mbedtls_dir" >&6; }
        else
          { $as_echo "$as_me:${as_lineno-$LINENO}: result: invalid" >&5
 $as_echo "invalid" >&6; }
          { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "Invalid OpenSSL location: $with_openssl_dir
+as_fn_error $? "Invalid Mbedtls location: $with_mbedtls_dir
 See \`config.log' for more details" "$LINENO" 5; }
        fi
 else
@@ -5411,15 +5411,15 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_EVP_EncryptInit" >&5
 $as_echo "$ac_cv_search_EVP_EncryptInit" >&6; }
 ac_res=$ac_cv_search_EVP_EncryptInit
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "can't find openssl >= 1.0.1 crypto lib
-See \`config.log' for more details" "$LINENO" 5; }
-fi
+#if test "$ac_res" != no; then :
+#  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+#
+#else
+#  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+#$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+#as_fn_error $? "can't find openssl >= 1.0.1 crypto lib
+#See \`config.log' for more details" "$LINENO" 5; }
+#fi
 
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing EVP_aes_128_ctr" >&5
 $as_echo_n "checking for library containing EVP_aes_128_ctr... " >&6; }
@@ -5472,15 +5472,15 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_EVP_aes_128_ctr" >&5
 $as_echo "$ac_cv_search_EVP_aes_128_ctr" >&6; }
 ac_res=$ac_cv_search_EVP_aes_128_ctr
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "can't find openssl >= 1.0.1 crypto lib
-See \`config.log' for more details" "$LINENO" 5; }
-fi
+#if test "$ac_res" != no; then :
+#  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+#
+#else
+#  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+#$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+#as_fn_error $? "can't find openssl >= 1.0.1 crypto lib
+#See \`config.log' for more details" "$LINENO" 5; }
+#fi
 
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing EVP_aes_128_gcm" >&5
 $as_echo_n "checking for library containing EVP_aes_128_gcm... " >&6; }
@@ -5533,32 +5533,32 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_EVP_aes_128_gcm" >&5
 $as_echo "$ac_cv_search_EVP_aes_128_gcm" >&6; }
 ac_res=$ac_cv_search_EVP_aes_128_gcm
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+#if test "$ac_res" != no; then :
+#  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+#
+#else
+#  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+#$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+#as_fn_error $? "can't find openssl >= 1.0.1 crypto lib
+#See \`config.log' for more details" "$LINENO" 5; }
+#fi
 
+
+
+$as_echo "#define MBEDTLS 1" >>confdefs.h
+
+   AES_ICM_OBJS="crypto/cipher/aes_icm_mbedtls.o crypto/cipher/aes_gcm_mbedtls.o"
+   HMAC_OBJS=crypto/hash/hmac_mbedtls.o
+   USE_MBEDTLS=1
+
+
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to leverage Mbedtls KDF algorithm" >&5
+$as_echo_n "checking whether to leverage Mbedtls KDF algorithm... " >&6; }
+   # Check whether --enable-mbedtls-kdf was given.
+if test "${enable_mbedtls_kdf+set}" = set; then :
+  enableval=$enable_mbedtls_kdf;
 else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "can't find openssl >= 1.0.1 crypto lib
-See \`config.log' for more details" "$LINENO" 5; }
-fi
-
-
-
-$as_echo "#define OPENSSL 1" >>confdefs.h
-
-   AES_ICM_OBJS="crypto/cipher/aes_icm_ossl.o crypto/cipher/aes_gcm_ossl.o"
-   HMAC_OBJS=crypto/hash/hmac_ossl.o
-   USE_OPENSSL=1
-
-
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to leverage OpenSSL KDF algorithm" >&5
-$as_echo_n "checking whether to leverage OpenSSL KDF algorithm... " >&6; }
-   # Check whether --enable-openssl-kdf was given.
-if test "${enable_openssl_kdf+set}" = set; then :
-  enableval=$enable_openssl_kdf;
-else
-  enable_openssl_kdf=no
+  enable_mbedtls_kdf=no
 fi
 
    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_openssl_kdf" >&5
@@ -5626,7 +5626,7 @@ See \`config.log' for more details" "$LINENO" 5; }
 fi
 
 
-$as_echo "#define OPENSSL_KDF 1" >>confdefs.h
+$as_echo "#define MBEDTLS_KDF 1" >>confdefs.h
 
    fi
 else

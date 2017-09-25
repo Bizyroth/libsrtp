@@ -120,11 +120,11 @@
 /* Define to use X86 inlined assembly code */
 #undef HAVE_X86
 
-/* Define this to use OpenSSL crypto. */
-#undef OPENSSL
+/* Define this to use Mbedtls crypto. */
+#undef MBEDTLS
 
 /* Define this to use OpenSSL KDF for SRTP. */
-#undef OPENSSL_KDF
+#undef MBEDTLS_KDF
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT

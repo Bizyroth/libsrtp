@@ -77,9 +77,9 @@ main (int argc, char *argv[]) {
   int i, j;
   extern srtp_cipher_type_t srtp_aes_icm_128;
   extern srtp_cipher_type_t srtp_aes_icm_256;
-#ifdef OPENSSL
-  extern srtp_cipher_type_t srtp_aes_gcm_128_openssl;
-  extern srtp_cipher_type_t srtp_aes_gcm_256_openssl;
+#ifdef MBEDTLS
+  extern srtp_cipher_type_t srtp_aes_gcm_128_mbedtls;
+  extern srtp_cipher_type_t srtp_aes_gcm_256_mbedtls;
 #endif
   srtp_cipher_t *c;
   uint8_t key[46] = {
@@ -175,14 +175,14 @@ main (int argc, char *argv[]) {
     }
   }
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
   {
     printf("running stat_tests on AES-128-GCM, expecting success\n");
     /* set buffer to cipher output */
     for (i=0; i < 2500; i++) {
 	buffer[i] = 0;
     }
-    err_check(srtp_cipher_type_alloc(&srtp_aes_gcm_128_openssl, &c, SRTP_AES_GCM_128_KEY_LEN_WSALT, 8));
+    err_check(srtp_cipher_type_alloc(&srtp_aes_gcm_128_mbedtls, &c, SRTP_AES_GCM_128_KEY_LEN_WSALT, 8));
     err_check(srtp_cipher_init(c, key));
     err_check(srtp_cipher_set_iv(c, (uint8_t*)&nonce, srtp_direction_encrypt));
     err_check(srtp_cipher_encrypt(c, buffer, &buf_len));
@@ -211,7 +211,7 @@ main (int argc, char *argv[]) {
     for (i=0; i < 2500; i++) {
 	buffer[i] = 0;
     }
-    err_check(srtp_cipher_type_alloc(&srtp_aes_gcm_256_openssl, &c, SRTP_AES_GCM_256_KEY_LEN_WSALT, 16));
+    err_check(srtp_cipher_type_alloc(&srtp_aes_gcm_256_mbedtls, &c, SRTP_AES_GCM_256_KEY_LEN_WSALT, 16));
     err_check(srtp_cipher_init(c, key));
     err_check(srtp_cipher_set_iv(c, (uint8_t*)&nonce, srtp_direction_encrypt));
     err_check(srtp_cipher_encrypt(c, buffer, &buf_len));

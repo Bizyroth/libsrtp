@@ -51,11 +51,10 @@
 #include "ekt.h"   /* for SRTP Encrypted Key Transport */
 #include "alloc.h" /* for srtp_crypto_alloc() */
 
-#ifdef OPENSSL
-#include "aes_gcm_ossl.h" /* for AES GCM mode */
-#ifdef OPENSSL_KDF
-#include <openssl/kdf.h>
-#include "aes_icm_ossl.h" /* for AES GCM mode */
+#ifdef MBEDTLS
+#include "aes_gcm_mbedtls.h" /* for AES GCM mode */
+#ifdef MBEDTLS_KDF
+#include "aes_icm_mbedtls.h" /* for AES GCM mode */
 #endif
 #endif
 
@@ -340,6 +339,7 @@ srtp_err_status_t srtp_stream_alloc(srtp_stream_ctx_t **str_ptr,
                 enc_xtn_hdr_cipher_type, &session_keys->rtp_xtn_hdr_cipher,
                 enc_xtn_hdr_cipher_key_len, 0);
             if (stat) {
+
                 srtp_stream_free(str);
                 return stat;
             }
@@ -630,7 +630,7 @@ typedef enum {
 
 #define MAX_SRTP_KEY_LEN 256
 
-#if defined(OPENSSL) && defined(OPENSSL_KDF)
+#if defined(MBEDTLS) && defined(MBEDTLS_KDF)
 #define MAX_SRTP_AESKEY_LEN 32
 #define MAX_SRTP_SALT_LEN 14
 
@@ -641,7 +641,7 @@ typedef enum {
 typedef struct {
     uint8_t master_key[MAX_SRTP_AESKEY_LEN];
     uint8_t master_salt[MAX_SRTP_SALT_LEN];
-    const EVP_CIPHER *evp;
+    const mbedtls_cipher_type_t *evp;
 } srtp_kdf_t;
 
 static srtp_err_status_t
@@ -658,13 +658,13 @@ srtp_kdf_init(srtp_kdf_t *kdf, const uint8_t *key, int key_len, int salt_len)
     }
     switch (key_len) {
     case SRTP_AES_256_KEYSIZE:
-        kdf->evp = EVP_aes_256_ctr();
+        *(kdf->evp) = MBEDTLS_CIPHER_AES_256_CTR;
         break;
     case SRTP_AES_192_KEYSIZE:
-        kdf->evp = EVP_aes_192_ctr();
+        *(kdf->evp) = MBEDTLS_CIPHER_AES_192_CTR;
         break;
     case SRTP_AES_128_KEYSIZE:
-        kdf->evp = EVP_aes_128_ctr();
+        *(kdf->evp) = MBEDTLS_CIPHER_AES_128_CTR;
         break;
     default:
         return srtp_err_status_bad_param;
@@ -710,7 +710,7 @@ static srtp_err_status_t srtp_kdf_clear(srtp_kdf_t *kdf)
     return srtp_err_status_ok;
 }
 
-#else  /* if OPENSSL_KDF */
+#else  /* if MBEDTLS_KDF */
 
 /*
  * srtp_kdf_t represents a key derivation function.  The SRTP
@@ -787,7 +787,7 @@ static srtp_err_status_t srtp_kdf_clear(srtp_kdf_t *kdf)
     kdf->cipher = NULL;
     return srtp_err_status_ok;
 }
-#endif /* else OPENSSL_KDF */
+#endif /* else MBEDTLS_KDF */
 
 /*
  *  end of key derivation functions
@@ -978,7 +978,7 @@ srtp_err_status_t srtp_stream_init_keys(srtp_stream_ctx_t *srtp,
     memcpy(tmp_key, key, (rtp_base_key_len + rtp_salt_len));
 
 /* initialize KDF state     */
-#if defined(OPENSSL) && defined(OPENSSL_KDF)
+#if defined(MBEDTLS) && defined(MBEDTLS_KDF)
     stat = srtp_kdf_init(&kdf, (const uint8_t *)tmp_key, rtp_base_key_len,
                          rtp_salt_len);
 #else
@@ -1077,7 +1077,7 @@ srtp_err_status_t srtp_stream_init_keys(srtp_stream_ctx_t *srtp,
             xtn_hdr_kdf = &tmp_kdf;
 
 /* initialize KDF state */
-#if defined(OPENSSL) && defined(OPENSSL_KDF)
+#if defined(MBEDTLS) && defined(MBEDTLS_KDF)
             stat =
                 srtp_kdf_init(xtn_hdr_kdf, (const uint8_t *)tmp_xtn_hdr_key,
                               rtp_xtn_hdr_base_key_len, rtp_xtn_hdr_salt_len);
@@ -3326,7 +3326,7 @@ void srtp_crypto_policy_set_aes_cm_256_null_auth(srtp_crypto_policy_t *p)
     p->sec_serv = sec_serv_conf;
 }
 
-#ifdef OPENSSL
+#ifdef MBEDTLS
 void srtp_crypto_policy_set_aes_cm_192_hmac_sha1_80(srtp_crypto_policy_t *p)
 {
     /*
@@ -3549,7 +3549,6 @@ srtp_protect_rtcp_aead(srtp_t ctx,
 
     /* get tag length from stream context */
     tag_len = srtp_auth_get_tag_length(session_keys->rtcp_auth);
-
     /*
      * set encryption start and encryption length - if we're not
      * providing confidentiality, set enc_start to NULL
@@ -3615,6 +3614,7 @@ srtp_protect_rtcp_aead(srtp_t ctx,
      * Set the AAD for GCM mode
      */
     if (enc_start) {
+
         /*
          * If payload encryption is enabled, then the AAD consist of
          * the RTCP header and the seq# at the end of the packet
@@ -3645,7 +3645,6 @@ srtp_protect_rtcp_aead(srtp_t ctx,
     if (status) {
         return (srtp_err_status_cipher_fail);
     }
-
     /* if we're encrypting, exor keystream into the message */
     if (enc_start) {
         status = srtp_cipher_encrypt(session_keys->rtcp_cipher,
@@ -4469,7 +4468,7 @@ srtp_crypto_policy_set_from_profile_for_rtp(srtp_crypto_policy_t *policy,
     case srtp_profile_null_sha1_80:
         srtp_crypto_policy_set_null_cipher_hmac_sha1_80(policy);
         break;
-#if defined(OPENSSL)
+#if defined(MBEDTLS)
     case srtp_profile_aead_aes_128_gcm:
         srtp_crypto_policy_set_aes_gcm_128_16_auth(policy);
         break;
@@ -4503,7 +4502,7 @@ srtp_crypto_policy_set_from_profile_for_rtcp(srtp_crypto_policy_t *policy,
     case srtp_profile_null_sha1_80:
         srtp_crypto_policy_set_null_cipher_hmac_sha1_80(policy);
         break;
-#if defined(OPENSSL)
+#if defined(MBEDTLS)
     case srtp_profile_aead_aes_128_gcm:
         srtp_crypto_policy_set_aes_gcm_128_16_auth(policy);
         break;

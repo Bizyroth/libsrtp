@@ -365,7 +365,7 @@ main (int argc, char *argv[]) {
     switch (sec_servs) {
     case sec_serv_conf_and_auth:
       if (gcm_on) {
-#ifdef OPENSSL
+#ifdef MBEDTLS
 	switch (key_size) {
 	case 128:
 	  srtp_crypto_policy_set_aes_gcm_128_8_auth(&policy.rtp);
@@ -377,7 +377,7 @@ main (int argc, char *argv[]) {
 	  break;
 	}
 #else
-	printf("error: GCM mode only supported when using the OpenSSL crypto engine.\n");
+	printf("error: GCM mode only supported when using the MBEDTLS crypto engine.\n");
 	return 0;
 #endif
       } else {
@@ -412,7 +412,7 @@ main (int argc, char *argv[]) {
       break;
     case sec_serv_auth:
       if (gcm_on) {
-#ifdef OPENSSL
+#ifdef MBEDTLS
 	switch (key_size) {
 	case 128:
 	  srtp_crypto_policy_set_aes_gcm_128_8_only_auth(&policy.rtp);
@@ -424,7 +424,7 @@ main (int argc, char *argv[]) {
 	  break;
 	}
 #else
-	printf("error: GCM mode only supported when using the OpenSSL crypto engine.\n");
+	printf("error: GCM mode only supported when using the MBEDTLS crypto engine.\n");
 	return 0;
 #endif
       } else {
